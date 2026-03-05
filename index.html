@@ -1,27 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Mini Social</title>
+    <title>SocialFeed</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
+<nav class="navbar">
+    <h2>SocialFeed</h2>
+    <button id="logout">Logout</button>
+</nav>
 
-        <h1 class="logo">MiniSocial</h1>
-
-        <!-- Create Post -->
-        <div class="create-post">
-            <textarea id="postInput" placeholder="What's on your mind?"></textarea>
-            <button onclick="createPost()">Post</button>
-        </div>
-
-        <!-- Posts Section -->
-        <div id="posts"></div>
-
+<div class="container">
+    <div class="create-post">
+        <textarea id="postText" placeholder="What's on your mind?"></textarea>
+        <input type="text" id="imageUrl" placeholder="Paste Image URL (optional)">
+        <button id="createPost">Post</button>
     </div>
 
-    <script src="script.js"></script>
+    <div id="posts"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module" src="script.js"></script>
+
 </body>
 </html>
