@@ -9,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, API_KEY);
 
 //  Protect Feed Page
 if (window.location.pathname.includes("index.html")) {
-    const currentUser = localStorage.getItem("currentUser");
+    const currentUser = localStorage.getItem("UserToken");
     if (!currentUser) {
         window.location.href = "login.html";
     } else {
@@ -52,13 +52,10 @@ async function signup() {
         return;
     }
 
-
-    // const user = { firstname, lastname, email, password };
-    // localStorage.setItem("user", JSON.stringify(user));
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
-         options: {
+        options: {
             data: {
                 firstname: firstname,
                 lastname: lastname
@@ -68,8 +65,8 @@ async function signup() {
 
     if (data) {
         console.log(data)
-        // alert("Signup successful!");
-        // window.location.href = "login.html";
+        alert("Signup successful!");
+        window.location.href = "login.html";
     } else {
         console.log(error, '===> error')
     }
@@ -82,29 +79,28 @@ async function login() {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
 
-    const { data, error } = await supabase.auth.signInWithOtp({
+    if (!email || !password) {
+        alert("Please fill in all fields");
+        return; 
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
         email,
+        password,
     })
     if (data) {
-        alert("Login succussfully")
+        console.log(data.user.id)
+            localStorage.setItem("UserToken", JSON.stringify(data.user.id));
+        window.location.href = "index.html";
     }
     else {
         console.log(error, 'errror')
     }
-
-    // const savedUser = JSON.parse(localStorage.getItem("user"));
-
-    // if (savedUser && savedUser.email === email && savedUser.password === password) {
-    //     localStorage.setItem("currentUser", JSON.stringify(savedUser));
-    //     window.location.href = "index.html";
-    // } else {
-    //     alert("Invalid credentials");
-    // }
 }
 
 // Logout
 function logout() {
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem("UserToken");
     window.location.href = "login.html";
 }
 
