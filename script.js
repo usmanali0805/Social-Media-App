@@ -5,12 +5,12 @@ const SUPABASE_URL = 'https://sfkmmfyntkupmcgxccfg.supabase.co'
 const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNma21tZnludGt1cG1jZ3hjY2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTM5OTIsImV4cCI6MjA4NzUyOTk5Mn0.YFwoq6_N7WHAJSYzRlD_WHJzzttHSIRRVCpHN0ikzM4'
 const supabase = createClient(SUPABASE_URL, API_KEY);
 
-
+const { data:{ session }, error } = await supabase.auth.getSession();
 
 //  Protect Feed Page
 if (window.location.pathname.includes("index.html")) {
-    const currentUser = localStorage.getItem("UserToken");
-    if (!currentUser) {
+    // const currentUser = localStorage.getItem("UserToken");
+    if (session === null) {
         window.location.href = "login.html";
     } else {
         loadPosts();
@@ -64,7 +64,11 @@ async function signup() {
     })
 
     if (data) {
-        console.log(data)
+        const { error } = await supabase
+            .from('users')
+            .insert({ id: data.user.id, firstname: firstname, lastname: lastname, email, })
+
+        console.log(error, '===> error')
         alert("Signup successful!");
         window.location.href = "login.html";
     } else {
@@ -81,7 +85,7 @@ async function login() {
 
     if (!email || !password) {
         alert("Please fill in all fields");
-        return; 
+        return;
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -89,8 +93,7 @@ async function login() {
         password,
     })
     if (data) {
-        console.log(data.user.id)
-            localStorage.setItem("UserToken", JSON.stringify(data.user.id));
+        localStorage.setItem("UserToken", JSON.stringify(data.user.id));
         window.location.href = "index.html";
     }
     else {
@@ -113,7 +116,6 @@ function createPost() {
 
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-    console.log(currentUser)
     const post = {
         text,
         imageUrl,
