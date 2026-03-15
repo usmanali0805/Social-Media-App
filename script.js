@@ -5,15 +5,17 @@ const SUPABASE_URL = 'https://sfkmmfyntkupmcgxccfg.supabase.co'
 const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNma21tZnludGt1cG1jZ3hjY2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTM5OTIsImV4cCI6MjA4NzUyOTk5Mn0.YFwoq6_N7WHAJSYzRlD_WHJzzttHSIRRVCpHN0ikzM4'
 const supabase = createClient(SUPABASE_URL, API_KEY);
 
-const { data:{ session }, error } = await supabase.auth.getSession();
+const { data: { session }, error } = await supabase.auth.getSession();
+localStorage.setItem("currentUser", JSON.stringify(session?.user));
+let GetUserId;
 
 //  Protect Feed Page
 if (window.location.pathname.includes("index.html")) {
-    // const currentUser = localStorage.getItem("UserToken");
     if (session === null) {
         window.location.href = "login.html";
     } else {
         loadPosts();
+        GetUserId = session?.user.id;
     }
 }
 
@@ -108,25 +110,38 @@ function logout() {
 }
 
 // Create Post
-function createPost() {
+async function createPost() {
     const text = document.getElementById("postText").value;
     const imageUrl = document.getElementById("imageUrl").value;
 
     if (text.trim() === "") return;
 
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const { error } = await supabase
+        .from('posts')
+        .insert({
+            text: text,
+            imgurl: imageUrl,
+            user_id: GetUserId
+        })
 
-    const post = {
-        text,
-        imageUrl,
-        authorFirstName: currentUser.firstname,
-        authorlastName: currentUser.lastname,
-        authorEmail: currentUser.email
-    };
+        if (error) {
+            console.log(error, '===> error')
+        }   
 
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    posts.unshift(post);
-    localStorage.setItem("posts", JSON.stringify(posts));
+
+    // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+    // const post = {
+    //     text,
+    //     imageUrl,
+    //     authorFirstName: currentUser.firstname,
+    //     authorlastName: currentUser.lastname,
+    //     authorEmail: currentUser.email
+    // };
+
+    // const posts = JSON.parse(localStorage.getItem("posts")) || [];
+    // posts.unshift(post);
+    // localStorage.setItem("posts", JSON.stringify(posts));
 
     loadPosts();
 
