@@ -124,9 +124,9 @@ async function createPost() {
             user_id: GetUserId
         })
 
-        if (error) {
-            console.log(error, '===> error')
-        }   
+    if (error) {
+        console.log(error, '===> error')
+    }
 
 
     // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -143,16 +143,27 @@ async function createPost() {
     // posts.unshift(post);
     // localStorage.setItem("posts", JSON.stringify(posts));
 
-    loadPosts();
-
+    
     document.getElementById("postText").value = "";
     document.getElementById("imageUrl").value = "";
 }
 
 // Load Posts
-function loadPosts() {
+async function loadPosts() {
     const postsContainer = document.getElementById("posts");
     postsContainer.innerHTML = "";
+
+    const { data, error } = await supabase
+        .from('posts')
+        .select('id , imgurl , text , users(firstname , lastname , email )')
+
+    console.log(data, '===> data')
+    return;
+    if (data) {
+    }
+    else {
+        console.log(error, '===> error')
+    }
 
     const posts = JSON.parse(localStorage.getItem("posts")) || [];
     const currentuser = JSON.parse(localStorage.getItem("currentUser")) || [];
@@ -171,3 +182,4 @@ function loadPosts() {
     });
 
 }
+    loadPosts();
