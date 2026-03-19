@@ -10,14 +10,22 @@ localStorage.setItem("currentUser", JSON.stringify(session?.user));
 let GetUserId;
 
 //  Protect Feed Page
-if (window.location.pathname.includes("index.html")) {
-    if (session === null) {
+
+if (session) {
+    // console.log(session)
+    loadPosts();
+    GetUserId = session?.user.id;
+
+} else {
+    const { pathname } = window.location;
+    if (pathname == '/login.html' || pathname == '/signup.html') {
+        console.log('User is not Login')
+    }
+    else {
         window.location.href = "login.html";
-    } else {
-        loadPosts();
-        GetUserId = session?.user.id;
     }
 }
+
 
 const signupbtn = document.getElementById('Signupbtn')
 const loginbtn = document.getElementById('loginBtn')
@@ -104,8 +112,11 @@ async function login() {
 }
 
 // Logout
-function logout() {
-    localStorage.removeItem("UserToken");
+async function logout() {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+        console.log(error, '===> error')
+    }
     window.location.href = "login.html";
 }
 
@@ -143,7 +154,7 @@ async function createPost() {
     // posts.unshift(post);
     // localStorage.setItem("posts", JSON.stringify(posts));
 
-    
+
     document.getElementById("postText").value = "";
     document.getElementById("imageUrl").value = "";
 }
@@ -157,29 +168,72 @@ async function loadPosts() {
         .from('posts')
         .select('id , imgurl , text , users(firstname , lastname , email )')
 
-    console.log(data, '===> data')
-    return;
+    // console.log(data, '===> data')
+
     if (data) {
+        data.forEach(post => {
+            postsContainer.innerHTML += `
+                <div class="post">
+                    <div class="post-author">
+                        <div class="author-info">
+                            <strong>${post?.users?.firstname}</strong>
+                            <span>${post?.users?.email}</span>
+                        </div>
+                        <div class="post-content">
+                            <button class="EditBtn" id=${post.id}>Edit</button>
+                            <button class="DeleteBtn" id=${post.id}>Delete</button>
+                        </div>
+                    </div>
+                    <p>${post?.text}</p>
+                    ${post?.imgurl ? `<img src="${post.imgurl}" alt="Post Image">` : ""}
+                </div>
+            `;
+            // console.log(post.id)
+        });
+
     }
     else {
         console.log(error, '===> error')
     }
 
-    const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    const currentuser = JSON.parse(localStorage.getItem("currentUser")) || [];
-
-    posts.forEach(post => {
-        postsContainer.innerHTML += `
-            <div class="post">
-                <div class="post-author">
-                    <strong>${currentuser.firstname}</strong>
-                    <span>${currentuser.email}</span>
-                </div>
-                <p>${post.text}</p>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post Image">` : ""}
-            </div>
-        `;
-    });
-
 }
+
+document.body.addEventListener("click", (e) => {
+    console.log(e.target.id);
+    if (e.target.textContent == "Edit") {
+        editPost(e.target.id)
+    }
+    if (e.target.textContent == "Delete") {
+        deletePost(e.target.id)
+        console.log("Delete button clicked");
+    }
+}
+)
+
+async function editPost(postId) {
+    const { error } = await supabase
+        .from('posts')
+        .update({ text: 'Navi gaddi purana engin' })
+        .eq('id', postId)
+        if (error) {
+            console.log(error, '===> error')
+        }
+
+        loadPosts();
+}
+
+
+async function deletePost(postId) {
+    console.log("Delete button clicked for post ID:", postId);
+
+    const response = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+    if (response.error) {
+        console.log(response.error, '===> error')   
+    }
     loadPosts();
+
+
+    }
