@@ -12,7 +12,6 @@ let GetUserId;
 //  Protect Feed Page
 
 if (session) {
-    // console.log(session)
     loadPosts();
     GetUserId = session?.user.id;
 
@@ -27,6 +26,7 @@ if (session) {
 }
 
 
+const CreatePost = document.querySelector(".create-post")
 const signupbtn = document.getElementById('Signupbtn')
 const loginbtn = document.getElementById('loginBtn')
 const logoutbtn = document.getElementById('logout')
@@ -140,21 +140,6 @@ async function createPost() {
     }
 
 
-    // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
-    // const post = {
-    //     text,
-    //     imageUrl,
-    //     authorFirstName: currentUser.firstname,
-    //     authorlastName: currentUser.lastname,
-    //     authorEmail: currentUser.email
-    // };
-
-    // const posts = JSON.parse(localStorage.getItem("posts")) || [];
-    // posts.unshift(post);
-    // localStorage.setItem("posts", JSON.stringify(posts));
-
-
     document.getElementById("postText").value = "";
     document.getElementById("imageUrl").value = "";
 }
@@ -167,8 +152,6 @@ async function loadPosts() {
     const { data, error } = await supabase
         .from('posts')
         .select('id , imgurl , text , users(firstname , lastname , email )')
-
-    // console.log(data, '===> data')
 
     if (data) {
         data.forEach(post => {
@@ -188,7 +171,6 @@ async function loadPosts() {
                     ${post?.imgurl ? `<img src="${post.imgurl}" alt="Post Image">` : ""}
                 </div>
             `;
-            // console.log(post.id)
         });
 
     }
@@ -199,37 +181,50 @@ async function loadPosts() {
 }
 
 document.body.addEventListener("click", (e) => {
-    console.log(e.target.id);
     if (e.target.textContent == "Edit") {
         editPost(e.target.id)
+        postbtn.style.display = "none";
+        const postText = document.getElementById("postText");
+        const imageUrl = document.getElementById("imageUrl");
+        if(!document.getElementById("UpdateBtn")) { 
+            const UpdateBtn = document.createElement("button");
+            UpdateBtn.textContent = "Update Post";
+            UpdateBtn.id = "UpdateBtn";
+            CreatePost.appendChild(UpdateBtn);
+        }
+        postText.value = e.target.parentElement.parentElement.nextElementSibling.textContent;
+        imageUrl.value = e.target.parentElement.parentElement.nextElementSibling.nextElementSibling.src;
+        UpdateBtn.addEventListener("click",()=> editPost(e.target.id , postText.value , imageUrl.value))
     }
     if (e.target.textContent == "Delete") {
-        deletePost(e.target.id)
-        console.log("Delete button clicked");
+        deletePost(e.target.id , GetUserId)
     }
 }
 )
 
-async function editPost(postId) {
+async function editPost(postId, newText, newImageUrl) {
     const { error } = await supabase
         .from('posts')
-        .update({ text: 'Navi gaddi purana engin' })
+        .update({ text: newText, imgurl: newImageUrl })
         .eq('id', postId)
+        // CreatePost.removeChild(document.getElementById("UpdateBtn"))
+        // postbtn.style.display = "block";
         if (error) {
             console.log(error, '===> error')
         }
+    console.log('Chal gaya')
 
         loadPosts();
 }
 
 
-async function deletePost(postId) {
-    console.log("Delete button clicked for post ID:", postId);
+async function deletePost(postId , userId) {
 
     const response = await supabase
         .from('posts')
         .delete()
         .eq('id', postId)
+        .eq('user_id', userId)
     if (response.error) {
         console.log(response.error, '===> error')   
     }
