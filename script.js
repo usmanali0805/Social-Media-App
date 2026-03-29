@@ -83,6 +83,7 @@ async function signup() {
         window.location.href = "login.html";
     } else {
         console.log(error, '===> error')
+
     }
 }
 
@@ -122,12 +123,34 @@ async function logout() {
 
 // Create Post
 async function createPost() {
-    const text = document.getElementById("postText").value;
-    const imageUrl = document.getElementById("imageUrl").value;
 
+    const text = document.getElementById("postText").value;
+    const imageFile = document.getElementById("imageFile");
+    const file = imageFile.files[0];
+    const fileName = `${Date.now()}-${file.name.trim()}`;
+
+
+    const { data, error } = await supabase.storage.from('InstaAPP').upload(fileName, imageFile.files[0])
+    if (error) {
+        // Handle error
+        console.log(error)
+    } else {
+        // Handle success
+        console.log(data)
+        const { data: publicUrlData } = supabase
+            .storage
+            .from('InstaAPP')
+            .getPublicUrl(data.path);
+
+        const publicUrl = publicUrlData.publicUrl;
+
+        console.log(publicUrl);
+    }
+
+    return;
     if (text.trim() === "") return;
 
-    const { error } = await supabase
+    const { errors } = await supabase
         .from('posts')
         .insert({
             text: text,
@@ -186,7 +209,7 @@ document.body.addEventListener("click", (e) => {
         postbtn.style.display = "none";
         const postText = document.getElementById("postText");
         const imageUrl = document.getElementById("imageUrl");
-        if(!document.getElementById("UpdateBtn")) { 
+        if (!document.getElementById("UpdateBtn")) {
             const UpdateBtn = document.createElement("button");
             UpdateBtn.textContent = "Update Post";
             UpdateBtn.id = "UpdateBtn";
@@ -194,10 +217,10 @@ document.body.addEventListener("click", (e) => {
         }
         postText.value = e.target.parentElement.parentElement.nextElementSibling.textContent;
         imageUrl.value = e.target.parentElement.parentElement.nextElementSibling.nextElementSibling.src;
-        UpdateBtn.addEventListener("click",()=> editPost(e.target.id , postText.value , imageUrl.value))
+        UpdateBtn.addEventListener("click", () => editPost(e.target.id, postText.value, imageUrl.value))
     }
     if (e.target.textContent == "Delete") {
-        deletePost(e.target.id , GetUserId)
+        deletePost(e.target.id, GetUserId)
     }
 }
 )
@@ -207,18 +230,18 @@ async function editPost(postId, newText, newImageUrl) {
         .from('posts')
         .update({ text: newText, imgurl: newImageUrl })
         .eq('id', postId)
-        // CreatePost.removeChild(document.getElementById("UpdateBtn"))
-        // postbtn.style.display = "block";
-        if (error) {
-            console.log(error, '===> error')
-        }
+    // CreatePost.removeChild(document.getElementById("UpdateBtn"))
+    // postbtn.style.display = "block";
+    if (error) {
+        console.log(error, '===> error')
+    }
     console.log('Chal gaya')
 
-        loadPosts();
+    loadPosts();
 }
 
 
-async function deletePost(postId , userId) {
+async function deletePost(postId, userId) {
 
     const response = await supabase
         .from('posts')
@@ -226,9 +249,9 @@ async function deletePost(postId , userId) {
         .eq('id', postId)
         .eq('user_id', userId)
     if (response.error) {
-        console.log(response.error, '===> error')   
+        console.log(response.error, '===> error')
     }
     loadPosts();
 
 
-    }
+}
