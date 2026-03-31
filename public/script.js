@@ -1,5 +1,14 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyA8c3_UwGIIVk41JsMLCXScakZ2pRm_VV4",
+  authDomain: "insta-app-eb863.firebaseapp.com",
+  projectId: "insta-app-eb863",
+  storageBucket: "insta-app-eb863.firebasestorage.app",
+  messagingSenderId: "604814321664",
+  appId: "1:604814321664:web:0bafbdd79bf393434990e5",
+  measurementId: "G-JTXB65ZTR0"
+};
 
 const SUPABASE_URL = 'https://sfkmmfyntkupmcgxccfg.supabase.co'
 const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNma21tZnludGt1cG1jZ3hjY2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTM5OTIsImV4cCI6MjA4NzUyOTk5Mn0.YFwoq6_N7WHAJSYzRlD_WHJzzttHSIRRVCpHN0ikzM4'
@@ -137,7 +146,7 @@ async function createPost() {
     } else {
         // Handle success
         console.log(data)
-        const { data: publicUrlData } = supabase
+        const { data: publicUrlData } = await supabase
             .storage
             .from('InstaAPP')
             .getPublicUrl(data.path);
@@ -145,26 +154,25 @@ async function createPost() {
         const publicUrl = publicUrlData.publicUrl;
 
         console.log(publicUrl);
+        if (text.trim() === "") return;
+    
+        const { errors } = await supabase
+            .from('posts')
+            .insert({
+                text: text,
+                imgurl: publicUrl.publicUrl,
+                user_id: GetUserId
+            })
+    
+        if (error) {
+            console.log(error, '===> error')
+        }
+    
+    
+        document.getElementById("postText").value = "";
+        // document.getElementById("imageFile") = "";
     }
 
-    return;
-    if (text.trim() === "") return;
-
-    const { errors } = await supabase
-        .from('posts')
-        .insert({
-            text: text,
-            imgurl: imageUrl,
-            user_id: GetUserId
-        })
-
-    if (error) {
-        console.log(error, '===> error')
-    }
-
-
-    document.getElementById("postText").value = "";
-    document.getElementById("imageUrl").value = "";
 }
 
 // Load Posts
